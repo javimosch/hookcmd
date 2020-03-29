@@ -57,7 +57,8 @@ async function init() {
             }
         }],
         postMiddlewares: [(req, res, next) => {
-            res.send(401)
+            //res.send(401)
+            next();
         }],
         allowGet: true,
         allowOverwrite: false,

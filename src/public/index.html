@@ -20,21 +20,31 @@
     </style>
 </head>
 <div id="app">
-    <command-select></command-select>
-    <hr>
-    <command></command>
+
+    <h1>Hookcmd</h1>
+  <p>
+    <router-link to="/">Commands</router-link>
+    <!--
+    <router-link to="/logs">Logs</router-link>
+    -->
+  </p>
+  <hr>
+
+    <router-view></router-view>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="https://unpkg.com/vuex@2.0.0"></script>
 <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+<script src="https://unpkg.com/vue-router@2.0.0/dist/vue-router.js"></script>
 <script type="module">
     import './commandsSelect.js';
     import './command.js'
-    
+    import router from './router.js'
     import store from './store.js'
     new Vue({
         store,
+        router,
         el:"#app",
         mounted(){
             console.log("ASD", this.$store)
