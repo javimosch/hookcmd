@@ -84,7 +84,10 @@ async function init() {
                     date: moment().tz("Europe/Paris").format('MMMM Do YYYY, h:mm:ss a'),
                     args
                 }
-                return log;
+                if(args.commandName==='test'){
+                    log.message="Test, nothing happens."
+                    return log;
+                }
                 async function hookExec() {
 
                     if (!args.commandName) {
