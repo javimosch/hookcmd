@@ -1,10 +1,43 @@
-<div id="app"></div>
+<head>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.7/css/all.css">
+    <style>
+        .command .result{
+            width:100%;
+            min-height:300px;
+        }
+        .commandStep .cmd{
+            width:100%;
+            min-height:100px;
+        }
+        .commandStep .drag{
+            cursor:pointer;
+            margin-bottom:5px;
+            padding: 10px;
+        }
+        .commandStep .drag:hover{
+            background: #e7e2e2;
+        }
+    </style>
+</head>
+<div id="app">
+    <command-select></command-select>
+    <hr>
+    <command></command>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-<script>
+<script src="https://unpkg.com/vuex@2.0.0"></script>
+<script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.20.0/vuedraggable.umd.min.js"></script>
+<script type="module">
+    import './commandsSelect.js';
+    import './command.js'
+    
+    import store from './store.js'
     new Vue({
+        store,
         el:"#app",
         mounted(){
-            console.log("ASD")
+            console.log("ASD", this.$store)
         }
     })
 </script>

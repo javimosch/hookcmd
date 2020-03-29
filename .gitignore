@@ -2,3 +2,5 @@ data/*
 !data/.keep
 node_modules
 .env
+key
+*.key
