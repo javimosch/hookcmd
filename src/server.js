@@ -7,8 +7,32 @@ const path = require('path')
 const PORT = process.env.PORT || 3000
 const low = require('lowdb')
 const FileAsync = require('lowdb/adapters/FileAsync')
-
+const moment = require('moment-timezone')
+const shortid = require('shortid')
+const sander = require('sander')
 init().catch(console.log)
+
+async function getLoggerDb() {
+    app._loggers = app._loggers || {}
+    let name = `logs-${moment().format("YYYY-MM-DD")}.json`
+    if (!app._loggers[name]) {
+        var dir = path.join(process.cwd(), 'data', 'logs');
+        if (!await sander.exists(dir)) {
+            await sander.mkdir(dir);
+        }
+        app._loggers[name] = await low(new FileAsync(path.join(process.cwd(), 'data/logs', name), {
+            defaultValue: { logs: [] }
+        }))
+    }
+    return app._loggers[name];
+}
+async function saveLog(log) {
+
+    await (await getLoggerDb())
+        .get('logs')
+        .push({ _id: shortid.generate(), ...log })
+        .write()
+}
 
 async function init() {
 
@@ -20,13 +44,62 @@ async function init() {
 
     require('funql-api').middleware(app, {
         /*defaults*/
-        getMiddlewares: [],
-        postMiddlewares: [],
-        allowGet: false,
+        getMiddlewares: [(req, res, next) => {
+            if (req.query.name === 'hook') {
+                req.query.body = require('btoa')(JSON.stringify({
+                    args: [{
+                        commandName: req.query.command || ""
+                    }]
+                }))
+                next()
+            } else {
+                res.send(401)
+            }
+        }],
+        postMiddlewares: [(req, res, next) => {
+            res.send(401)
+        }],
+        allowGet: true,
         allowOverwrite: false,
-        attachToExpress: false,
+        attachToExpress: true,
         allowCORS: true,
         api: {
+            hook(args) {
+                let log = {
+                    date: moment().tz("Europe/Paris").format('MMMM Do YYYY, h:mm:ss a'),
+                    args
+                }
+                async function hookExec() {
+
+                    if (!args.commandName) {
+                        log.err = 'command missing'
+                    } else {
+                        try {
+                            var commands = await db.get('commands')
+                                .filter({ name: args.commandName })
+                                .value();
+                            var res = await app.api.executeCommand(commands[0] || null)
+                            log.res = {
+                                err: res.err,
+                                stepsCodes: res.stepsCodes
+                            }
+                        } catch (err) {
+                            log.err = JSON.stringify(err, Object.getOwnPropertyNames(err), 4)
+                        }
+                    }
+                    saveLog(log)
+                }
+                hookExec().catch(err => {
+                    saveLog({
+                        ...log,
+                        err: JSON.stringify(err, Object.getOwnPropertyNames(err), 4)
+                    })
+                })
+                return {
+                    message: "The hook was received. Thanks",
+                    args
+                }
+            },
             async executeCommand(command) {
                 if (!command) {
                     return {
@@ -34,6 +107,7 @@ async function init() {
                     }
                 }
                 let all = ``;
+                let stepsCodes = {}
                 let ssh = await getSSH()
                 const sequential = require('promise-sequential');
                 await sequential((command.steps || []).map((step, index) => {
@@ -49,10 +123,7 @@ async function init() {
                                     console.log('stderrChunk', chunk.toString('utf8'))
                                 },
                             })
-                            console.log({
-                                code: res.code,
-                                signal: res.signal
-                            })
+                            stepsCodes[index] = res.code
                         } else {
                             res = {
                                 stderr: '(Empty command)',
@@ -71,6 +142,7 @@ async function init() {
                 }))
 
                 return {
+                    stepsCodes,
                     all
                 }
             },
@@ -90,7 +162,7 @@ async function init() {
                         err: "name required"
                     }
                 }
-                command.steps = command.steps.filter(step=>{
+                command.steps = command.steps.filter(step => {
                     return !!step.cmd
                 })
                 if (command._id) {
@@ -104,7 +176,7 @@ async function init() {
                     .value()
 
                 if (match.length === 0) {
-                    const shortid = require('shortid')
+
                     await db
                         .get('commands')
                         .push({ _id: shortid.generate(), ...command })
