@@ -10,6 +10,7 @@ const FileAsync = require('lowdb/adapters/FileAsync')
 const moment = require('moment-timezone')
 const shortid = require('shortid')
 const sander = require('sander')
+const bodyParser = require('body-parser')
 init().catch(console.log)
 
 async function getLoggerDb() {
@@ -40,7 +41,20 @@ async function init() {
         defaultValue: { commands: [] }
     }))
 
+    app.use(bodyParser.json())
+    app.use(bodyParser.urlencoded({ extended: true }))
 
+    app.get('/:commandName',async(req,res,next)=>{
+        res.json(await app.api.hook({
+            commandName: req.params.commandName
+        }))
+    })
+    app.post('/:commandName',async (req,res,next)=>{
+        res.json(await app.api.hook({
+            commandName: req.params.commandName,
+            body: req.body
+        }))
+    })
 
     require('funql-api').middleware(app, {
         /*defaults*/
@@ -70,6 +84,7 @@ async function init() {
                     date: moment().tz("Europe/Paris").format('MMMM Do YYYY, h:mm:ss a'),
                     args
                 }
+                return log;
                 async function hookExec() {
 
                     if (!args.commandName) {
