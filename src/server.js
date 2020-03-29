@@ -44,6 +44,17 @@ async function init() {
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: true }))
 
+    
+    app.get('/admin',(req,res)=>{
+        let html = sander.readFileSync(path.join(process.cwd(),'src/public','index.html')).toString('utf-8')
+        html=html.split('</head>').join(`
+            <script>
+                window.API_URL = "${process.env.API_URL||""}"
+            </script>
+        </head>
+        `)
+        res.send(html)
+    })
     app.use('/admin', express.static(path.join(process.cwd(), 'src/public')))
 
     require('funql-api').middleware(app, {
