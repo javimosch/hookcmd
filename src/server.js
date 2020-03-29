@@ -44,17 +44,7 @@ async function init() {
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: true }))
 
-    app.get('/:commandName',async(req,res,next)=>{
-        res.json(await app.api.hook({
-            commandName: req.params.commandName
-        }))
-    })
-    app.post('/:commandName',async (req,res,next)=>{
-        res.json(await app.api.hook({
-            commandName: req.params.commandName,
-            body: req.body
-        }))
-    })
+    app.use('/admin', express.static(path.join(process.cwd(), 'src/public')))
 
     require('funql-api').middleware(app, {
         /*defaults*/
@@ -209,7 +199,18 @@ async function init() {
             }
         }
     })
-    app.use('/', express.static(path.join(process.cwd(), 'src/public')))
+
+    app.get('/hook/:commandName',async(req,res,next)=>{
+        res.json(await app.api.hook({
+            commandName: req.params.commandName
+        }))
+    })
+    app.post('/hook/:commandName',async (req,res,next)=>{
+        res.json(await app.api.hook({
+            commandName: req.params.commandName,
+            body: req.body
+        }))
+    })
 
     app.listen(PORT, () => console.log(`Listening on ${PORT}`))
 
