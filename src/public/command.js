@@ -1,7 +1,7 @@
 import api from './api.js'
 import './commandStep.js'
 Vue.component('command', {
-    name:"Command",
+    name: "Command",
     template: `
     <div class="command">
         <form>
@@ -33,55 +33,57 @@ Vue.component('command', {
     data() {
         return this.getDefaults();
     },
-    created(){
-        this.$watch("selectedCommand",()=>{
-            Object.assign(this.command,this.selectedCommand||{})
-        },{
-            deep:true
+    created() {
+        this.$store.watch((state) => {
+            return state.selectedCommand
+        }, () => {
+            Object.assign(this.command, this.selectedCommand || {})
+        }, {
+            deep: true
         })
     },
     mounted() {
 
     },
-    computed:{
-        crudMode(){
+    computed: {
+        crudMode() {
             return this.command._id ? "(Edition)" : "(New)"
-        },  
-        selectedCommand(){
+        },
+        selectedCommand() {
             return this.$store.state.selectedCommand
         }
     },
     methods: {
-        getDefaults(){
+        getDefaults() {
             return {
                 test: {
                     result: ""
                 },
                 command: {
-                    _id:"",
+                    _id: "",
                     name: "",
                     steps: []
                 }
             }
         },
         async testCommand() {
-            this.test.result=`Executing...`;
+            this.test.result = `Executing...`;
             let res = await api("executeCommand", Object.assign({}, this.command))
             this.test.result = res.all;
         },
         addStep() {
             this.command.steps.push({
-                _id:'_' + Math.random().toString(36).substr(2, 9)
+                _id: '_' + Math.random().toString(36).substr(2, 9)
             })
         },
-        async removeCommand(){
-            await api('removeCommand',this.command._id)
+        async removeCommand() {
+            await api('removeCommand', this.command._id)
             this.$store.dispatch('fetchCommands')
-            Object.assign(this.$data,this.getDefaults())
+            Object.assign(this.$data, this.getDefaults())
         },
-        newCommand(){
-            Object.assign(this.$data,this.getDefaults())
-            this.$store.dispatch('selectCommand',null)
+        newCommand() {
+            Object.assign(this.$data, this.getDefaults())
+            this.$store.dispatch('selectCommand', null)
         },
         async saveCommand(e) {
             e.preventDefault();

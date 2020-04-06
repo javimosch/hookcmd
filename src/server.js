@@ -30,7 +30,7 @@ async function getLoggerDb() {
 async function saveLog(log) {
 
     await (await getLoggerDb())
-        .get('logs')
+    .get('logs')
         .push({ _id: shortid.generate(), ...log })
         .write()
 }
@@ -44,10 +44,13 @@ async function init() {
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: true }))
 
-    
-    app.get('/admin',(req,res)=>{
-        let html = sander.readFileSync(path.join(process.cwd(),'src/public','index.html')).toString('utf-8')
-        html=html.split('</head>').join(`
+
+    var isProduction = process.env.NODE_ENV === 'production'
+    var guiRoute = isProduction ? "/admin" : "/"
+
+    app.get(guiRoute, (req, res) => {
+        let html = sander.readFileSync(path.join(process.cwd(), 'src/public', 'index.html')).toString('utf-8')
+        html = html.split('</head>').join(`
             <script>
                 window.API_URL = "${process.env.API_URL||""}"
             </script>
@@ -55,7 +58,7 @@ async function init() {
         `)
         res.send(html)
     })
-    app.use('/admin', express.static(path.join(process.cwd(), 'src/public')))
+    app.use(guiRoute, express.static(path.join(process.cwd(), 'src/public')))
 
     require('funql-api').middleware(app, {
         /*defaults*/
@@ -85,8 +88,8 @@ async function init() {
                     date: moment().tz("Europe/Paris").format('MMMM Do YYYY, h:mm:ss a'),
                     args
                 }
-                if(args.commandName==='test'){
-                    log.message="Test, nothing happens."
+                if (args.commandName === 'test') {
+                    log.message = "Test, nothing happens."
                     return log;
                 }
                 async function hookExec() {
@@ -131,7 +134,7 @@ async function init() {
                 let ssh = await getSSH()
                 const sequential = require('promise-sequential');
                 await sequential((command.steps || []).map((step, index) => {
-                    return () => (async () => {
+                    return () => (async() => {
                         let res = null;
                         if (step.cmd) {
                             res = await ssh.execCommand(step.cmd, {
@@ -188,7 +191,7 @@ async function init() {
                 if (command._id) {
                     return await db.get('commands')
                         .find({ _id: command._id })
-                        .assign({ ...command })
+                        .assign({...command })
                         .write()
                 }
                 let match = await db.get('commands')
@@ -205,18 +208,18 @@ async function init() {
                 }
                 return await db.get('commands')
                     .find({ name: command.name })
-                    .assign({ ...command })
+                    .assign({...command })
                     .write()
             }
         }
     })
 
-    app.get('/hook/:commandName',async(req,res,next)=>{
+    app.get('/hook/:commandName', async(req, res, next) => {
         res.json(await app.api.hook({
             commandName: req.params.commandName
         }))
     })
-    app.post('/hook/:commandName',async (req,res,next)=>{
+    app.post('/hook/:commandName', async(req, res, next) => {
         res.json(await app.api.hook({
             commandName: req.params.commandName,
             body: req.body
