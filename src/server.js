@@ -30,7 +30,7 @@ async function getLoggerDb() {
 async function saveLog(log) {
 
     await (await getLoggerDb())
-    .get('logs')
+        .get('logs')
         .push({ _id: shortid.generate(), ...log })
         .write()
 }
@@ -52,7 +52,7 @@ async function init() {
         let html = sander.readFileSync(path.join(process.cwd(), 'src/public', 'index.html')).toString('utf-8')
         html = html.split('</head>').join(`
             <script>
-                window.API_URL = "${process.env.API_URL||""}"
+                window.API_URL = "${process.env.API_URL || ""}"
             </script>
         </head>
         `)
@@ -134,7 +134,7 @@ async function init() {
                 let ssh = await getSSH()
                 const sequential = require('promise-sequential');
                 await sequential((command.steps || []).map((step, index) => {
-                    return () => (async() => {
+                    return () => (async () => {
                         let res = null;
                         if (step.cmd) {
                             res = await ssh.execCommand(step.cmd, {
@@ -191,7 +191,7 @@ async function init() {
                 if (command._id) {
                     return await db.get('commands')
                         .find({ _id: command._id })
-                        .assign({...command })
+                        .assign({ ...command })
                         .write()
                 }
                 let match = await db.get('commands')
@@ -208,18 +208,18 @@ async function init() {
                 }
                 return await db.get('commands')
                     .find({ name: command.name })
-                    .assign({...command })
+                    .assign({ ...command })
                     .write()
             }
         }
     })
 
-    app.get('/hook/:commandName', async(req, res, next) => {
+    app.get('/hook/:commandName', async (req, res, next) => {
         res.json(await app.api.hook({
             commandName: req.params.commandName
         }))
     })
-    app.post('/hook/:commandName', async(req, res, next) => {
+    app.post('/hook/:commandName', async (req, res, next) => {
         res.json(await app.api.hook({
             commandName: req.params.commandName,
             body: req.body
@@ -228,6 +228,37 @@ async function init() {
 
     app.listen(PORT, () => console.log(`Listening on ${PORT}`))
 
+    if ((await sander.readdir(path.join(process.cwd(), 'data'))).find(folder => folder === 'schedules')) {
+        const nodeSchedule = require('node-schedule');
+        let schedules = await sander.readdir(path.join(process.cwd(), 'data', 'schedules'))
+        schedules = schedules.map(schedule => ({
+            name: schedule,
+            module: require(path.join(process.cwd(), 'data/schedules', schedule))
+        }))
+        schedules
+            .filter(schedule => schedule.module.enabled === undefined ? true : schedule.module.enabled)
+            .forEach(schedule => {
+                console.log("Schedule configured", schedule.name)
+                nodeSchedule.scheduleJob(schedule.module.cron, () => {
+                    console.log('Schedule running', schedule.name)
+
+                    if (schedule.module.manual) {
+                        schedule.module.handler().then(response => {
+                            console.log('Schedule success', schedule.name)
+                        }).catch(err => {
+                            console.log('Schedule fail', schedule.name, err.stack)
+                        })
+                    } else {
+
+                        app.api.executeCommand(schedule.module.handler(app)).then((r) => {
+                            console.log('Schedule success', schedule.name)
+                        }).catch(err => {
+                            console.log('Schedule fail', schedule.name, err.stack)
+                        })
+                    }
+                })
+            });
+    }
 
 }
 
