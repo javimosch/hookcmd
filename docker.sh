@@ -1,5 +1,4 @@
 (docker rm -f hookcmd||true) && (docker run -d --rm --name hookcmd --env-file ./.env -w /app \
---net=caddy-node_caddy --net-alias=hookcmd \
 -v "$(pwd)/src:/app/src" \
 -v "$(pwd)/data:/app/data" \
 -v "$(pwd)/docker-entry.sh:/app/docker-entry.sh" \

@@ -1,0 +1,25 @@
+version: '3.1'
+services:
+  app:
+    container_name: hookcmd
+    build: .
+    working_dir: /app
+    env_file: .env
+    volumes:
+     - "./.env:/app/.env"
+     - "./src:/app/src"
+     - "./data:/app/data"
+     - "./docker-entry.sh:/app/docker-entry.sh"
+     - "./package.json:/app/package.json"
+     - "./package.lock.json:/app/package.lock.json"
+     - "/root/.npm/_cacache:/root/.npm/_cache"
+    entrypoint:
+     - sh 
+     - ./docker-entry.sh
+     networks:
+          - mba_default
+
+networks:
+  mba_default:
+    external:
+      name: mba_default

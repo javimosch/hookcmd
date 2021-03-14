@@ -231,6 +231,7 @@ async function init() {
     if ((await sander.readdir(path.join(process.cwd(), 'data'))).find(folder => folder === 'schedules')) {
         const nodeSchedule = require('node-schedule');
         let schedules = await sander.readdir(path.join(process.cwd(), 'data', 'schedules'))
+        console.log('Schedules detected', schedules)
         schedules = schedules.map(schedule => ({
             name: schedule,
             module: require(path.join(process.cwd(), 'data/schedules', schedule))
@@ -239,23 +240,20 @@ async function init() {
             .filter(schedule => schedule.module.enabled === undefined ? true : schedule.module.enabled)
             .forEach(schedule => {
                 console.log("Schedule configured", schedule.name)
-                nodeSchedule.scheduleJob(schedule.module.cron, () => {
+                if (schedule.module.manual) {
+                    return
+                }
+                nodeSchedule.scheduleJob(schedule.module.cron, async () => {
                     console.log('Schedule running', schedule.name)
-
-                    if (schedule.module.manual) {
-                        schedule.module.handler().then(response => {
-                            console.log('Schedule success', schedule.name)
-                        }).catch(err => {
-                            console.log('Schedule fail', schedule.name, err.stack)
-                        })
-                    } else {
-
-                        app.api.executeCommand(schedule.module.handler(app)).then((r) => {
-                            console.log('Schedule success', schedule.name)
-                        }).catch(err => {
-                            console.log('Schedule fail', schedule.name, err.stack)
-                        })
+                    let command = schedule.module.handler(app)
+                    if (command instanceof Promise) {
+                        command = await command
                     }
+                    app.api.executeCommand(command).then((r) => {
+                        console.log('Schedule success', schedule.name, r)
+                    }).catch(err => {
+                        console.log('Schedule fail', schedule.name, err.stack)
+                    })
                 })
             });
     }
