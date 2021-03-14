@@ -14,9 +14,9 @@ services:
      - "./package.lock.json:/app/package.lock.json"
      - "/root/.npm/_cacache:/root/.npm/_cache"
     entrypoint:
-     - sh 
-     - ./docker-entry.sh
-     networks:
+      - sh 
+      - ./docker-entry.sh
+    networks:
           - mba_default
 
 networks:
