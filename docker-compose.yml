@@ -6,12 +6,8 @@ services:
     working_dir: /app
     env_file: .env
     volumes:
-     - "./.env:/app/.env"
-     - "./src:/app/src"
      - "./data:/app/data"
-     - "./docker-entry.sh:/app/docker-entry.sh"
-     - "./package.json:/app/package.json"
-     - "./package.lock.json:/app/package.lock.json"
+     - "./.env:/app/.env"
      - "/root/.npm/_cacache:/root/.npm/_cache"
     entrypoint:
       - sh 

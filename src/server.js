@@ -44,11 +44,7 @@ async function init() {
     app.use(bodyParser.json())
     app.use(bodyParser.urlencoded({ extended: true }))
 
-
-    var isProduction = process.env.NODE_ENV === 'production'
-    var guiRoute = isProduction ? "/admin" : "/"
-
-    app.get(guiRoute, (req, res) => {
+    app.get('/', (req, res) => {
         let html = sander.readFileSync(path.join(process.cwd(), 'src/public', 'index.html')).toString('utf-8')
         html = html.split('</head>').join(`
             <script>
@@ -58,7 +54,7 @@ async function init() {
         `)
         res.send(html)
     })
-    app.use(guiRoute, express.static(path.join(process.cwd(), 'src/public')))
+    app.use('/', express.static(path.join(process.cwd(), 'src/public')))
 
     require('funql-api').middleware(app, {
         /*defaults*/
@@ -260,13 +256,14 @@ async function init() {
 
 }
 
-function getSSH() {
+async function getSSH() {
     node_ssh = require('node-ssh')
     ssh = new node_ssh()
-
+    let key = await sander.readFileSync(process.env.SSH_KEY || path.join(process.cwd(), 'key')).toString('utf-8')
+    console.log('SSH: Key', key.length)
     return ssh.connect({
         host: process.env.SSH_HOST || 'localhost',
         username: process.env.SSH_USER || 'root',
-        privateKey: process.env.SSH_KEY || path.join(process.cwd(), 'key')
+        privateKey: key
     })
 }
