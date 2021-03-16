@@ -1,6 +1,7 @@
 require('dotenv').config({
     silent: true
 })
+require('./server/mongo')
 const express = require('express');
 const app = express();
 const path = require('path')
@@ -45,6 +46,9 @@ async function init() {
     app.use(bodyParser.urlencoded({ extended: true }))
 
     app.get('/', (req, res) => {
+        if (req.query.pwd !== "123") {
+            res.send('YOU SHALL NOT PASS')
+        }
         let html = sander.readFileSync(path.join(process.cwd(), 'src/public', 'index.html')).toString('utf-8')
         html = html.split('</head>').join(`
             <script>

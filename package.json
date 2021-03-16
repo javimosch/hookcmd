@@ -2,9 +2,9 @@
   "name": "hookcmd",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "dev": "npx nodemon --exec 'node src/server.js' -e js --watch src/server.js"
+    "dev": "npx nodemon --exec 'node src/index.js' -e js --watch src/index.js --watch src/server"
   },
   "keywords": [],
   "author": "",
@@ -16,8 +16,10 @@
     "execa": "^4.0.3",
     "express": "^4.17.1",
     "funql-api": "^1.2.9",
+    "jsonwebtoken": "^8.5.1",
     "lowdb": "^1.0.0",
     "moment-timezone": "^0.5.28",
+    "mongoose": "^5.12.0",
     "node-schedule": "^1.3.2",
     "node-ssh": "^8.0.0",
     "nodemon": "^2.0.2",
