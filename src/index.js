@@ -86,8 +86,15 @@ async function init() {
             hook(args) {
                 let log = {
                     date: moment().tz("Europe/Paris").format('MMMM Do YYYY, h:mm:ss a'),
-                    args
+                    command: args.commandName,
                 }
+
+                let key = args.key || ""
+                if (!(process.env.API_KEYS || "").split(',').includes(key.toString())) {
+                    log.message = "Invalid API key"
+                    return log
+                }
+
                 if (args.commandName === 'test') {
                     log.message = "Test, nothing happens."
                     return log;
@@ -216,13 +223,15 @@ async function init() {
 
     app.get('/hook/:commandName', async (req, res, next) => {
         res.json(await app.api.hook({
-            commandName: req.params.commandName
+            commandName: req.params.commandName,
+            key: req.query.key
         }))
     })
     app.post('/hook/:commandName', async (req, res, next) => {
         res.json(await app.api.hook({
             commandName: req.params.commandName,
-            body: req.body
+            body: req.body,
+            key: req.query.key
         }))
     })
 
