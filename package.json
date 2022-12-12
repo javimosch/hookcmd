@@ -14,7 +14,7 @@
     "btoa": "^1.2.1",
     "dotenv": "^8.2.0",
     "execa": "^4.0.3",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "funql-api": "^1.2.9",
     "jsonwebtoken": "^8.5.1",
     "lowdb": "^1.0.0",
