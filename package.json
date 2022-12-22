@@ -16,7 +16,7 @@
     "execa": "^4.0.3",
     "express": "^4.17.1",
     "funql-api": "^1.2.9",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "lowdb": "^1.0.0",
     "moment-timezone": "^0.5.28",
     "mongoose": "^5.12.0",
